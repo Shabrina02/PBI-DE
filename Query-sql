@@ -1,0 +1,67 @@
+CREATE TABLE DimCustomer (
+	CustomerID INT NOT NULL,
+	CustomerName VARCHAR(100),
+	Age INT NOT NULL,
+	Gender VARCHAR(50),
+	City VARCHAR(50) NOT NULL,
+	NoHP VARCHAR(50) NOT NULL,
+	CONSTRAINT PKCustomerID PRIMARY KEY (CustomerID)
+);
+
+CREATE TABLE DimProduct (
+	ProductID INT NOT NULL,
+	ProductName VARCHAR(255) NOT NULL,
+	ProductCategory VARCHAR(255) NOT NULL,
+	ProductUnitPrice INT NOT NULL,
+	CONSTRAINT PKProductID PRIMARY KEY (ProductID)
+);
+
+CREATE TABLE DimStatusOrder (
+	StatusID INT NOT NULL,
+	StatusOrder VARCHAR(50) NOT NULL,
+	CONSTRAINT PKStatusID PRIMARY KEY (StatusID)
+);
+
+CREATE TABLE FactSalesOrder (
+	OrderID INT NOT NULL,
+	CustomerID INT NOT NULL,
+	ProductID INT NOT NULL,
+	Quantity INT NOT NULL,
+	Amount INT NOT NULL,
+	StatusID INT NOT NULL,
+	OrderDate DATE NOT NULL,
+	CONSTRAINT PKOrderID PRIMARY KEY (OrderID),
+	CONSTRAINT FKCustomerID FOREIGN KEY (CustomerID) REFERENCES DimCustomer (CustomerID),
+	CONSTRAINT FKProductID FOREIGN KEY (ProductID) REFERENCES DimProduct (ProductID),
+	CONSTRAINT FKStatusID FOREIGN KEY (StatusID) REFERENCES DimStatusOrder (StatusID)
+);
+
+
+select * from FactSalesOrder
+
+
+
+CREATE PROCEDURE summary_sales_order 
+(@StatusID INT) AS
+BEGIN
+	SELECT
+		fa.OrderID,
+		dc.CustomerName,
+		dp.ProductName,
+		fa.Quantity,
+		ds.StatusOrder
+	FROM
+		FactSalesOrder AS fa
+	JOIN
+		DimCustomer AS dc
+			ON fa.CustomerID = dc.CustomerID
+	JOIN
+		DimProduct AS dp
+			ON fa.ProductID = dp.ProductID
+	JOIN
+		DimStatusOrder AS ds
+			ON fa.StatusID = ds.StatusID
+	WHERE fa.StatusID = @StatusID
+END;
+
+EXEC summary_sales_order @StatusID = 1
